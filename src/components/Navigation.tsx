@@ -18,7 +18,7 @@ const Navigation = () => {
   });
 
   const navItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+    { icon: LayoutDashboard, label: 'Home', path: '/' },
     { icon: GraduationCap, label: 'Academics', path: '/academics' },
     { icon: Calendar, label: 'Calendar', path: '/calendar' },
     { icon: MessageSquare, label: 'Messages', path: '/messages' },
@@ -26,7 +26,7 @@ const Navigation = () => {
   ];
 
   return (
-    <nav className={`fixed bottom-0 left-0 right-0 z-50 glass border-t transition-all duration-500 ${mounted ? 'translate-y-0' : 'translate-y-full'}`}>
+    <nav className={`fixed bottom-0 left-0 right-0 z-50 bg-white border-t transition-all duration-500 ${mounted ? 'translate-y-0' : 'translate-y-full'}`}>
       <div className="container max-w-4xl mx-auto px-4">
         <div className="flex justify-between items-center py-2">
           {navItems.map((item, index) => {

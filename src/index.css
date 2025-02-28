@@ -5,7 +5,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 99%;
+    --background: 0 0% 98%;
     --foreground: 240 10% 4%;
 
     --card: 0 0% 100%;
@@ -14,16 +14,16 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 4%;
 
-    --primary: 175 82% 36%;
+    --primary: 0 0% 15%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 43 96% 73%;
-    --secondary-foreground: 240 10% 4%;
+    --secondary: 240 4% 90%;
+    --secondary-foreground: 240 5.9% 10%;
 
     --muted: 240 5% 96%;
     --muted-foreground: 240 4% 46%;
 
-    --accent: 12 83% 86%;
+    --accent: 240 5% 90%;
     --accent-foreground: 240 6% 10%;
 
     --destructive: 0 84% 60%;
@@ -31,7 +31,7 @@
 
     --border: 240 6% 90%;
     --input: 240 6% 90%;
-    --ring: 175 82% 36%;
+    --ring: 0 0% 15%;
 
     --radius: 0.75rem;
   }
@@ -75,6 +75,14 @@
   
   .link-hover {
     @apply relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:origin-bottom-left after:scale-x-0 after:bg-primary after:transition-transform after:duration-300 hover:after:origin-bottom-left hover:after:scale-x-100;
+  }
+
+  .category-icon {
+    @apply flex flex-col items-center justify-center p-4 rounded-xl bg-white border border-border transition-all duration-300 hover:border-primary/20 hover:shadow-md;
+  }
+  
+  .category-icon-inner {
+    @apply w-14 h-14 rounded-full flex items-center justify-center mb-2 bg-secondary text-primary;
   }
 }
 
