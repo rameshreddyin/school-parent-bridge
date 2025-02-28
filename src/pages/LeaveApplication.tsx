@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { CalendarIcon, Clock, FileText, Send, X, Check, AlertCircle, ChevronDown, Calendar, AlertTriangle, Plus, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
@@ -75,6 +75,17 @@ const LeaveApplication = () => {
   const [activeTab, setActiveTab] = useState<'apply' | 'history'>('apply');
   const [expandedLeaveId, setExpandedLeaveId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
+  
+  // Track scroll position for UI effects
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   
   // Calculate leave duration
   const calculateDuration = () => {
