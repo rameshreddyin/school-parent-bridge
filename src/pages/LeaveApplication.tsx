@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import Layout from '../components/Layout';
-import { CalendarIcon, Clock, FileText, Send, X, Check, AlertCircle, ChevronDown, Calendar } from 'lucide-react';
+import { CalendarIcon, Clock, FileText, Send, X, Check, AlertCircle, ChevronDown, Calendar, AlertTriangle, Plus, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 const leaveTypes = [
@@ -74,6 +74,7 @@ const LeaveApplication = () => {
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'apply' | 'history'>('apply');
   const [expandedLeaveId, setExpandedLeaveId] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   
   // Calculate leave duration
   const calculateDuration = () => {
@@ -191,12 +192,19 @@ const LeaveApplication = () => {
     setSubmitMode('default');
   };
   
+  const simulateRefresh = () => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+      toast.success('Leave history updated');
+    }, 1500);
+  };
+  
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = { 
-      weekday: 'short', 
-      year: 'numeric', 
+      day: 'numeric',
       month: 'short', 
-      day: 'numeric' 
+      year: 'numeric' 
     };
     return new Date(dateString).toLocaleDateString('en-IN', options);
   };
@@ -234,91 +242,94 @@ const LeaveApplication = () => {
   };
 
   return (
-    <Layout title="Apply Leave" showBackButton={true}>
-      <div className="space-y-4">
-        {/* Tab Navigation */}
-        <div className="bg-white rounded-xl flex overflow-hidden border">
+    <Layout title="Leave" showBackButton={true}>
+      <div className="relative">
+        {/* Tab Navigation - Fixed at top */}
+        <div className="bg-white rounded-xl flex overflow-hidden border mb-3 sticky top-0 z-10">
           <button 
             className={`flex-1 py-3 text-sm font-medium ${activeTab === 'apply' ? 'bg-primary text-white' : 'hover:bg-muted/50'}`}
             onClick={() => setActiveTab('apply')}
           >
-            Apply for Leave
+            Apply
           </button>
           <button 
             className={`flex-1 py-3 text-sm font-medium ${activeTab === 'history' ? 'bg-primary text-white' : 'hover:bg-muted/50'}`}
             onClick={() => setActiveTab('history')}
           >
-            Leave History
+            History
           </button>
         </div>
         
         {activeTab === 'apply' && (
           <>
             {submitMode === 'preview' ? (
-              <div className="bg-white rounded-2xl p-5 border card-shadow animate-fade-in">
-                <h2 className="text-lg font-medium mb-3">Review Leave Application</h2>
-                <p className="text-sm text-muted-foreground mb-5">
-                  Please review your leave application details before submitting.
+              <div className="bg-white rounded-xl p-4 border card-shadow animate-fade-in">
+                <h2 className="text-lg font-medium mb-2">Review Application</h2>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Please confirm these details before submitting.
                 </p>
                 
-                <div className="space-y-4 bg-muted/30 p-4 rounded-lg border">
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3 bg-muted/20 p-3 rounded-lg border">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
                       <p className="text-xs text-muted-foreground">Leave Type</p>
-                      <p className="font-medium">
+                      <p className="font-medium text-sm">
                         {leaveTypes.find(type => type.id === leaveType)?.label || leaveType}
                       </p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Duration</p>
-                      <p className="font-medium">{leaveDuration} day(s)</p>
+                      <p className="font-medium text-sm">{leaveDuration} day(s)</p>
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <p className="text-xs text-muted-foreground">From Date</p>
-                      <p className="font-medium">{formatDate(fromDate)}</p>
+                      <p className="text-xs text-muted-foreground">From</p>
+                      <p className="font-medium text-sm">{formatDate(fromDate)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">To Date</p>
-                      <p className="font-medium">{formatDate(toDate)}</p>
+                      <p className="text-xs text-muted-foreground">To</p>
+                      <p className="font-medium text-sm">{formatDate(toDate)}</p>
                     </div>
                   </div>
                   
                   <div>
-                    <p className="text-xs text-muted-foreground">Reason for Leave</p>
+                    <p className="text-xs text-muted-foreground">Reason</p>
                     <p className="text-sm">{reason}</p>
                   </div>
                   
                   {attachments.length > 0 && (
                     <div>
                       <p className="text-xs text-muted-foreground">Attachments</p>
-                      <ul className="text-sm list-disc list-inside">
+                      <div className="flex flex-wrap gap-2 mt-1">
                         {attachments.map((file, index) => (
-                          <li key={index}>{file.name}</li>
+                          <div key={index} className="bg-muted/50 px-2 py-1 rounded-md text-xs flex items-center">
+                            <FileText className="h-3 w-3 mr-1" />
+                            <span className="truncate max-w-[100px]">{file.name}</span>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     </div>
                   )}
                   
-                  <div className="flex items-center pt-2">
-                    <AlertCircle size={16} className="text-amber-500 mr-2" />
-                    <p className="text-xs">
+                  <div className="flex items-center text-xs p-2 bg-amber-50 rounded-lg">
+                    <AlertCircle size={14} className="text-amber-500 mr-2 flex-shrink-0" />
+                    <p>
                       {notifyTeacher 
-                        ? "Your child's class teacher will be notified about this leave."
+                        ? "Your child's class teacher will be notified."
                         : "You've chosen not to notify the class teacher."}
                     </p>
                   </div>
                 </div>
                 
-                <div className="flex space-x-3 mt-6">
+                <div className="flex space-x-2 mt-4">
                   <button
                     onClick={cancelPreview}
                     className="flex-1 bg-muted py-3 rounded-xl font-medium text-sm"
                     disabled={submitting}
                   >
-                    Edit Application
+                    Edit
                   </button>
                   <button
                     onClick={handleSubmit}
@@ -328,115 +339,114 @@ const LeaveApplication = () => {
                     {submitting ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                        Submitting...
+                        Submitting
                       </>
                     ) : (
                       <>
                         <Send className="h-4 w-4 mr-2" />
-                        Confirm & Submit
+                        Submit
                       </>
                     )}
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-2xl p-5 border card-shadow animate-fade-in">
-                <h2 className="text-lg font-medium mb-3">Submit Leave Application</h2>
-                <p className="text-sm text-muted-foreground mb-5">
-                  Fill the form below to apply for leave. All fields marked with * are required.
-                </p>
-                
+              <div className="bg-white rounded-xl p-4 border card-shadow animate-fade-in">
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
+                  <div>
                     <label className="text-sm font-medium">
                       Type of Leave *
                     </label>
                     <select
                       value={leaveType}
                       onChange={(e) => setLeaveType(e.target.value)}
-                      className="w-full rounded-lg border p-2.5 text-sm"
+                      className="w-full mt-1 rounded-lg border p-3 text-sm"
                       required
                     >
                       <option value="">Select leave type</option>
                       {leaveTypes.map(type => (
                         <option key={type.id} value={type.id}>
-                          {type.label} {type.requiresDocuments ? '(Requires Documents)' : ''}
+                          {type.label} {type.requiresDocuments ? '(Docs Required)' : ''}
                         </option>
                       ))}
                     </select>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
                       <label className="text-sm font-medium">
                         From Date *
                       </label>
-                      <div className="relative">
+                      <div className="relative mt-1">
                         <input
                           type="date"
                           value={fromDate}
                           onChange={(e) => setFromDate(e.target.value)}
-                          className="w-full rounded-lg border p-2.5 pl-10 text-sm"
+                          className="w-full rounded-lg border p-3 pl-9 text-sm"
                           required
                           min={new Date().toISOString().split('T')[0]}
                         />
-                        <CalendarIcon className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                        <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       </div>
                     </div>
                     
-                    <div className="space-y-2">
+                    <div>
                       <label className="text-sm font-medium">
                         To Date *
                       </label>
-                      <div className="relative">
+                      <div className="relative mt-1">
                         <input
                           type="date"
                           value={toDate}
                           onChange={(e) => setToDate(e.target.value)}
-                          className="w-full rounded-lg border p-2.5 pl-10 text-sm"
+                          className="w-full rounded-lg border p-3 pl-9 text-sm"
                           required
                           min={fromDate || new Date().toISOString().split('T')[0]}
                         />
-                        <CalendarIcon className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                        <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       </div>
                     </div>
                   </div>
                   
                   {fromDate && toDate && (
-                    <div className="bg-muted/30 p-3 rounded-lg flex items-center text-sm">
-                      <Calendar className="h-5 w-5 mr-2 text-primary" />
-                      Leave Duration: <span className="font-semibold ml-1">{leaveDuration} day(s)</span>
+                    <div className="bg-primary/5 p-2 rounded-lg flex items-center text-sm">
+                      <Calendar className="h-4 w-4 mr-2 text-primary" />
+                      Duration: <span className="font-semibold ml-1">{leaveDuration} day(s)</span>
                     </div>
                   )}
                   
-                  <div className="space-y-2">
+                  <div>
                     <label className="text-sm font-medium">
-                      Reason for Leave *
+                      Reason *
                     </label>
                     <textarea
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
-                      className="w-full rounded-lg border p-2.5 text-sm min-h-[100px] resize-none"
-                      placeholder="Please provide detailed reason for the leave"
+                      className="w-full mt-1 rounded-lg border p-3 text-sm min-h-[80px] resize-none"
+                      placeholder="Why are you applying for leave?"
                       required
                     ></textarea>
-                    <p className="text-xs text-muted-foreground">
-                      Minimum 10 characters required. Include relevant details to help process your request faster.
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Min 10 characters. Add details to help process your request faster.
                     </p>
                   </div>
                   
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium flex items-center">
-                      Attachment {selectedLeaveTypeRequiresDocuments() && <span className="text-red-500 ml-1">*</span>}
-                      {selectedLeaveTypeRequiresDocuments() && (
-                        <span className="text-xs text-red-500 ml-2">(Required for this leave type)</span>
-                      )}
-                    </label>
-                    <div className="border border-dashed rounded-lg p-4 text-center">
+                  <div>
+                    <div className="flex justify-between items-center">
+                      <label className="text-sm font-medium flex items-center">
+                        Attachment
+                        {selectedLeaveTypeRequiresDocuments() && (
+                          <span className="ml-1 text-xs px-1.5 py-0.5 bg-red-50 text-red-500 rounded">Required</span>
+                        )}
+                      </label>
+                      <span className="text-xs text-muted-foreground">PDF, JPG, PNG (Max 5MB)</span>
+                    </div>
+                    
+                    <div className="border border-dashed rounded-lg p-3 mt-1 text-center">
                       {attachments.length > 0 ? (
                         <div className="space-y-2">
                           {attachments.map((file, index) => (
-                            <div key={index} className="flex items-center justify-between bg-muted/50 p-2 rounded-lg">
+                            <div key={index} className="flex items-center justify-between bg-muted/30 p-2 rounded-lg">
                               <div className="flex items-center">
                                 <FileText className="h-4 w-4 mr-2 text-muted-foreground" />
                                 <span className="text-sm truncate max-w-[200px]">{file.name}</span>
@@ -459,17 +469,14 @@ const LeaveApplication = () => {
                           />
                           <label
                             htmlFor="file-upload"
-                            className="inline-block px-4 py-2 bg-muted text-sm font-medium rounded-lg cursor-pointer mt-2"
+                            className="inline-flex items-center px-3 py-2 bg-muted text-xs font-medium rounded-lg cursor-pointer mt-2"
                           >
+                            <Plus size={14} className="mr-1" />
                             Add More Files
                           </label>
                         </div>
                       ) : (
                         <>
-                          <FileText className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                          <p className="text-sm text-muted-foreground mb-2">
-                            Upload supporting documents
-                          </p>
                           <input
                             type="file"
                             id="file-upload"
@@ -479,39 +486,36 @@ const LeaveApplication = () => {
                           />
                           <label
                             htmlFor="file-upload"
-                            className="inline-block px-4 py-2 bg-muted text-sm font-medium rounded-lg cursor-pointer"
+                            className="flex flex-col items-center cursor-pointer w-full py-3"
                           >
-                            Browse Files
+                            <FileText className="h-8 w-8 text-muted-foreground mb-2" />
+                            <span className="text-sm text-muted-foreground">Tap to upload documents</span>
                           </label>
                         </>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Accepted file types: PDF, JPG, PNG. Max size: 5MB per file.
-                    </p>
                   </div>
                   
-                  <div className="pt-2">
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={notifyTeacher}
-                        onChange={() => setNotifyTeacher(!notifyTeacher)}
-                        className="rounded border-gray-300 text-primary focus:ring-primary"
-                      />
-                      <span className="text-sm">Notify class teacher about this leave</span>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="notify-teacher"
+                      checked={notifyTeacher}
+                      onChange={() => setNotifyTeacher(!notifyTeacher)}
+                      className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4"
+                    />
+                    <label htmlFor="notify-teacher" className="text-sm ml-2">
+                      Notify class teacher about this leave
                     </label>
                   </div>
                   
-                  <div className="pt-4">
-                    <button
-                      type="submit"
-                      className="w-full bg-primary text-white py-3 rounded-xl font-medium flex items-center justify-center"
-                    >
-                      <Send className="h-4 w-4 mr-2" />
-                      Preview Application
-                    </button>
-                  </div>
+                  <button
+                    type="submit"
+                    className="w-full bg-primary text-white py-3 rounded-xl font-medium flex items-center justify-center text-sm"
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    Preview Application
+                  </button>
                 </form>
               </div>
             )}
@@ -519,108 +523,117 @@ const LeaveApplication = () => {
         )}
         
         {activeTab === 'history' && (
-          <div className="bg-white rounded-2xl p-5 border card-shadow animate-fade-in">
-            <h3 className="text-lg font-medium mb-3">Leave History</h3>
-            
-            {mockLeaveHistory.length === 0 ? (
-              <div className="text-center py-8">
-                <Calendar className="h-12 w-12 mx-auto text-muted-foreground opacity-50" />
-                <p className="mt-2 text-muted-foreground">No leave applications found</p>
+          <>
+            <div className="bg-white rounded-xl p-4 border card-shadow animate-fade-in">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-base font-medium">Leave History</h3>
+                <button 
+                  onClick={simulateRefresh}
+                  className="p-2 rounded-full hover:bg-muted transition-colors"
+                  disabled={refreshing}
+                >
+                  <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin text-primary' : ''}`} />
+                </button>
               </div>
-            ) : (
-              <div className="space-y-3">
-                {mockLeaveHistory.map((leave) => (
-                  <div 
-                    key={leave.id}
-                    className="rounded-xl border hover:border-primary/20 transition-colors overflow-hidden"
-                  >
+              
+              {mockLeaveHistory.length === 0 ? (
+                <div className="text-center py-6">
+                  <Calendar className="h-12 w-12 mx-auto text-muted-foreground opacity-50" />
+                  <p className="mt-2 text-sm text-muted-foreground">No leave applications found</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {mockLeaveHistory.map((leave) => (
                     <div 
-                      className="flex items-start p-3 cursor-pointer"
-                      onClick={() => toggleExpandLeave(leave.id)}
+                      key={leave.id}
+                      className="rounded-xl border hover:border-primary/20 transition-colors overflow-hidden"
                     >
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 mt-1 ${
-                        leave.status === 'approved' ? 'bg-green-50 text-green-500' : 
-                        leave.status === 'rejected' ? 'bg-red-50 text-red-500' : 
-                        'bg-amber-50 text-amber-500'
-                      }`}>
-                        <Clock size={20} />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex justify-between">
-                          <p className="font-medium text-sm">{leave.type}</p>
-                          <div className="flex items-center">
-                            <span className={`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 ${getStatusColor(leave.status)}`}>
-                              {getStatusIcon(leave.status)}
-                              <span className="capitalize">{leave.status}</span>
-                            </span>
-                            <ChevronDown 
-                              size={16} 
-                              className={`ml-1 transition-transform ${expandedLeaveId === leave.id ? 'rotate-180' : ''}`} 
-                            />
-                          </div>
+                      <div 
+                        className="flex items-start p-3 cursor-pointer"
+                        onClick={() => toggleExpandLeave(leave.id)}
+                      >
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${
+                          leave.status === 'approved' ? 'bg-green-50 text-green-500' : 
+                          leave.status === 'rejected' ? 'bg-red-50 text-red-500' : 
+                          'bg-amber-50 text-amber-500'
+                        }`}>
+                          {leave.status === 'approved' ? <Check size={18} /> : 
+                          leave.status === 'rejected' ? <X size={18} /> : 
+                          <Clock size={18} />}
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(leave.fromDate).toLocaleDateString('en-IN')} - {new Date(leave.toDate).toLocaleDateString('en-IN')}
-                        </p>
-                        <p className="text-xs mt-1 line-clamp-1">{leave.reason}</p>
-                      </div>
-                    </div>
-                    
-                    {expandedLeaveId === leave.id && (
-                      <div className="px-3 pb-3 pt-0 border-t border-dashed mt-1 ml-16 text-sm space-y-2 animate-fade-in">
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          <div>
-                            <p className="text-muted-foreground">Applied On:</p>
-                            <p>{new Date(leave.appliedOn).toLocaleDateString('en-IN')}</p>
+                        <div className="flex-1">
+                          <div className="flex justify-between">
+                            <p className="font-medium text-sm">{leave.type}</p>
+                            <div className="flex items-center">
+                              <span className={`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 ${getStatusColor(leave.status)}`}>
+                                <span className="capitalize">{leave.status}</span>
+                              </span>
+                              <ChevronDown 
+                                size={16} 
+                                className={`ml-1 transition-transform ${expandedLeaveId === leave.id ? 'rotate-180' : ''}`} 
+                              />
+                            </div>
                           </div>
-                          {leave.actionDate && (
+                          <p className="text-xs text-muted-foreground">
+                            {formatDate(leave.fromDate)} {leave.fromDate !== leave.toDate && `- ${formatDate(leave.toDate)}`}
+                          </p>
+                          <p className="text-xs mt-1 line-clamp-1">{leave.reason}</p>
+                        </div>
+                      </div>
+                      
+                      {expandedLeaveId === leave.id && (
+                        <div className="px-3 pb-3 pt-1 border-t border-dashed ml-12 text-sm space-y-3 animate-fade-in">
+                          <div className="grid grid-cols-2 gap-2 text-xs">
                             <div>
-                              <p className="text-muted-foreground">Action Date:</p>
-                              <p>{new Date(leave.actionDate).toLocaleDateString('en-IN')}</p>
+                              <p className="text-muted-foreground">Applied On:</p>
+                              <p>{formatDate(leave.appliedOn)}</p>
+                            </div>
+                            {leave.actionDate && (
+                              <div>
+                                <p className="text-muted-foreground">Action Date:</p>
+                                <p>{formatDate(leave.actionDate)}</p>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {leave.actionBy && (
+                            <div className="text-xs">
+                              <p className="text-muted-foreground">Action By:</p>
+                              <p>{leave.actionBy}</p>
+                            </div>
+                          )}
+                          
+                          {leave.comments && (
+                            <div className="text-xs bg-muted/20 p-2 rounded-lg">
+                              <p className="text-muted-foreground mb-1">Comments:</p>
+                              <p className="italic">{leave.comments}</p>
+                            </div>
+                          )}
+                          
+                          {leave.status === 'pending' && (
+                            <div className="flex justify-end">
+                              <button className="text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-lg">
+                                Cancel Application
+                              </button>
                             </div>
                           )}
                         </div>
-                        
-                        {leave.actionBy && (
-                          <div className="text-xs">
-                            <p className="text-muted-foreground">Action By:</p>
-                            <p>{leave.actionBy}</p>
-                          </div>
-                        )}
-                        
-                        {leave.comments && (
-                          <div className="text-xs">
-                            <p className="text-muted-foreground">Comments:</p>
-                            <p className="italic">{leave.comments}</p>
-                          </div>
-                        )}
-                        
-                        {leave.status === 'pending' && (
-                          <div className="flex justify-end pt-1">
-                            <button className="text-xs bg-primary/10 text-primary px-3 py-1 rounded-lg">
-                              Cancel Application
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-        
-        {activeTab === 'history' && (
-          <div className="text-center">
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* Floating Action Button */}
             <button 
-              onClick={() => setActiveTab('apply')} 
-              className="inline-flex items-center justify-center bg-primary text-white px-6 py-2.5 rounded-lg text-sm font-medium"
+              onClick={() => setActiveTab('apply')}
+              className="fixed bottom-20 right-4 w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center"
+              aria-label="New leave application"
             >
-              <Send className="h-4 w-4 mr-2" />
-              Apply for New Leave
+              <Plus size={24} />
             </button>
-          </div>
+          </>
         )}
       </div>
     </Layout>
