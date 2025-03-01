@@ -10,6 +10,7 @@ import { useEffect } from "react";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LeaveApplication from "./pages/LeaveApplication";
+import Attendance from "./pages/Attendance";
 
 // Initialize Capacitor
 const configureCapacitor = () => {
@@ -34,7 +35,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/academics" element={<NotFound />} />
-            <Route path="/attendance" element={<NotFound />} />
+            <Route path="/attendance" element={<Attendance />} />
             <Route path="/homework" element={<NotFound />} />
             <Route path="/calendar" element={<NotFound />} />
             <Route path="/announcements" element={<NotFound />} />
