@@ -14,6 +14,7 @@ import Attendance from "./pages/Attendance";
 import Academics from "./pages/Academics";
 import Calendar from "./pages/Calendar";
 import Homework from "./pages/Homework";
+import Fees from "./pages/Fees";
 
 // Initialize Capacitor
 const configureCapacitor = () => {
@@ -43,7 +44,7 @@ const App = () => {
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/announcements" element={<NotFound />} />
             <Route path="/messages" element={<NotFound />} />
-            <Route path="/fees" element={<NotFound />} />
+            <Route path="/fees" element={<Fees />} />
             <Route path="/leaves" element={<LeaveApplication />} />
             <Route path="/results" element={<NotFound />} />
             <Route path="/permission" element={<NotFound />} />

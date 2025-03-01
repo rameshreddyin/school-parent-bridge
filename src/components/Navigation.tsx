@@ -6,7 +6,7 @@ import {
   GraduationCap, 
   Calendar, 
   MessageSquare, 
-  CreditCard 
+  Wallet 
 } from 'lucide-react';
 
 const Navigation = () => {
@@ -22,7 +22,7 @@ const Navigation = () => {
     { icon: GraduationCap, label: 'Academics', path: '/academics' },
     { icon: Calendar, label: 'Calendar', path: '/calendar' },
     { icon: MessageSquare, label: 'Messages', path: '/messages' },
-    { icon: CreditCard, label: 'Fees', path: '/fees' },
+    { icon: Wallet, label: 'Fees', path: '/fees' },
   ];
 
   return (
