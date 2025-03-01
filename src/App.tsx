@@ -15,6 +15,9 @@ import Academics from "./pages/Academics";
 import Calendar from "./pages/Calendar";
 import Homework from "./pages/Homework";
 import Fees from "./pages/Fees";
+import Timetable from "./pages/Timetable";
+import Results from "./pages/Results";
+import Permission from "./pages/Permission";
 
 // Initialize Capacitor
 const configureCapacitor = () => {
@@ -46,10 +49,10 @@ const App = () => {
             <Route path="/messages" element={<NotFound />} />
             <Route path="/fees" element={<Fees />} />
             <Route path="/leaves" element={<LeaveApplication />} />
-            <Route path="/results" element={<NotFound />} />
-            <Route path="/permission" element={<NotFound />} />
+            <Route path="/results" element={<Results />} />
+            <Route path="/permission" element={<Permission />} />
             <Route path="/transport" element={<NotFound />} />
-            <Route path="/timetable" element={<NotFound />} />
+            <Route path="/timetable" element={<Timetable />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

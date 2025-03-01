@@ -6,8 +6,19 @@ import {
   GraduationCap, 
   Calendar, 
   MessageSquare, 
-  Wallet 
+  Wallet,
+  Clock,
+  Book,
+  Award,
+  FileText,
+  MoreHorizontal
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navigation = () => {
   const location = useLocation();
@@ -17,7 +28,7 @@ const Navigation = () => {
     setMounted(true);
   });
 
-  const navItems = [
+  const mainNavItems = [
     { icon: LayoutDashboard, label: 'Home', path: '/' },
     { icon: GraduationCap, label: 'Academics', path: '/academics' },
     { icon: Calendar, label: 'Calendar', path: '/calendar' },
@@ -25,13 +36,24 @@ const Navigation = () => {
     { icon: Wallet, label: 'Fees', path: '/fees' },
   ];
 
+  const moreNavItems = [
+    { icon: Clock, label: 'Timetable', path: '/timetable' },
+    { icon: Book, label: 'Homework', path: '/homework' },
+    { icon: Award, label: 'Results', path: '/results' },
+    { icon: FileText, label: 'Permission', path: '/permission' },
+  ];
+
+  const isActiveRoute = (path: string) => {
+    return location.pathname === path;
+  };
+
   return (
     <nav className={`fixed bottom-0 left-0 right-0 z-50 bg-white border-t transition-all duration-500 ${mounted ? 'translate-y-0' : 'translate-y-full'}`}>
       <div className="container max-w-4xl mx-auto px-4">
         <div className="flex justify-between items-center py-2">
-          {navItems.map((item, index) => {
+          {mainNavItems.map((item, index) => {
             const Icon = item.icon;
-            const isActive = location.pathname === item.path;
+            const isActive = isActiveRoute(item.path);
             
             return (
               <Link
@@ -61,6 +83,41 @@ const Navigation = () => {
               </Link>
             );
           })}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex flex-col items-center justify-center p-2 rounded-xl text-muted-foreground hover:text-foreground transition-all duration-300">
+              <div className="p-1.5 rounded-lg hover:bg-muted/50 transition-all duration-300">
+                <MoreHorizontal className="w-5 h-5" />
+              </div>
+              <span className="text-xs mt-1 font-medium opacity-70">
+                More
+              </span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent 
+              align="end" 
+              sideOffset={5}
+              className="w-56 bg-white border rounded-xl shadow-lg z-50"
+            >
+              {moreNavItems.map((item, index) => {
+                const Icon = item.icon;
+                const isActive = isActiveRoute(item.path);
+                
+                return (
+                  <DropdownMenuItem key={index} asChild>
+                    <Link
+                      to={item.path}
+                      className={`flex items-center p-2 rounded-md transition-all duration-200 ${
+                        isActive ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 mr-2" />
+                      <span className="text-sm font-medium">{item.label}</span>
+                    </Link>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </nav>
