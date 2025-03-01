@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Layout from '../components/Layout';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,11 +6,16 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { feeData } from '../utils/mockData';
-import { CreditCard, Download, CheckCircle, Clock, AlertCircle, IndianRupee, Receipt, Wallet } from 'lucide-react';
+import { CreditCard, Download, CheckCircle, Clock, AlertCircle, IndianRupee, Receipt, Wallet, Upload } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 
 const Fees = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [paymentType, setPaymentType] = useState<string>('');
+  const [selectedFeeId, setSelectedFeeId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const pendingFees = feeData.filter(fee => fee.status === 'pending' || fee.status === 'overdue');
@@ -45,11 +49,51 @@ const Fees = () => {
     }
   };
 
-  const handlePayment = () => {
+  const handlePaymentStart = (feeId: string) => {
+    setSelectedFeeId(feeId);
+    setPaymentType('');
+    setReceiptFile(null);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setReceiptFile(e.target.files[0]);
+    }
+  };
+
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleSubmitPayment = () => {
+    if (!paymentType) {
+      toast({
+        title: "Payment method required",
+        description: "Please select a payment method.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!receiptFile) {
+      toast({
+        title: "Receipt required",
+        description: "Please upload a receipt for verification.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     toast({
-      title: "Payment initiated",
-      description: "You will be redirected to the payment gateway.",
+      title: "Payment submitted",
+      description: "Your payment receipt has been uploaded and is pending approval.",
     });
+    
+    setSelectedFeeId(null);
+    setPaymentType('');
+    setReceiptFile(null);
   };
 
   const handleDownloadReceipt = (receiptNo: string) => {
@@ -78,7 +122,97 @@ const Fees = () => {
               </div>
             </div>
             {pendingFees.length > 0 && (
-              <Button className="mt-4" onClick={handlePayment}>Pay Now</Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="mt-4">Pay Now</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Choose Payment Method</DialogTitle>
+                    <DialogDescription>
+                      Select a payment method, make the payment, and upload the receipt for verification.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 my-2">
+                    <div>
+                      <h3 className="text-sm font-medium mb-2">Select Payment Method</h3>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button 
+                          variant={paymentType === 'card' ? 'default' : 'outline'} 
+                          className="justify-start"
+                          onClick={() => setPaymentType('card')}
+                        >
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          Credit/Debit Card
+                        </Button>
+                        <Button 
+                          variant={paymentType === 'upi' ? 'default' : 'outline'} 
+                          className="justify-start"
+                          onClick={() => setPaymentType('upi')}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
+                            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M7.5 12H16.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M12 7.5V16.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                          UPI
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-sm font-medium mb-2">Upload Payment Receipt</h3>
+                      <div 
+                        className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={triggerFileInput}
+                      >
+                        <input 
+                          type="file" 
+                          ref={fileInputRef} 
+                          className="hidden" 
+                          accept="image/*,.pdf" 
+                          onChange={handleFileChange}
+                        />
+                        {receiptFile ? (
+                          <div className="flex flex-col items-center">
+                            <CheckCircle className="h-8 w-8 text-green-500 mb-2" />
+                            <p className="text-sm font-medium">{receiptFile.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {(receiptFile.size / 1024).toFixed(2)} KB
+                            </p>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="mt-2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setReceiptFile(null);
+                              }}
+                            >
+                              Replace
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center">
+                            <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                            <p className="text-sm font-medium">Upload Receipt</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Drag and drop or click to browse
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Supported formats: JPG, PNG, PDF
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setSelectedFeeId(null)}>Cancel</Button>
+                    <Button onClick={handleSubmitPayment}>Submit Payment</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             )}
           </CardHeader>
           <CardContent className="p-0">
@@ -138,10 +272,105 @@ const Fees = () => {
                         </div>
                       </div>
                       <div className="mt-3">
-                        <Button variant="outline" size="sm" className="w-full" onClick={handlePayment}>
-                          <CreditCard className="mr-2 h-4 w-4" />
-                          Pay Now
-                        </Button>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="w-full"
+                              onClick={() => handlePaymentStart(fee.id)}
+                            >
+                              <Upload className="mr-2 h-4 w-4" />
+                              Pay & Upload Receipt
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Pay Fee: {fee.type}</DialogTitle>
+                              <DialogDescription>
+                                Amount: ₹{fee.amount.toLocaleString('en-IN')} | Due: {new Date(fee.dueDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4 my-2">
+                              <div>
+                                <h3 className="text-sm font-medium mb-2">Select Payment Method</h3>
+                                <div className="grid grid-cols-2 gap-2">
+                                  <Button 
+                                    variant={paymentType === 'card' ? 'default' : 'outline'} 
+                                    className="justify-start"
+                                    onClick={() => setPaymentType('card')}
+                                  >
+                                    <CreditCard className="mr-2 h-4 w-4" />
+                                    Credit/Debit Card
+                                  </Button>
+                                  <Button 
+                                    variant={paymentType === 'upi' ? 'default' : 'outline'} 
+                                    className="justify-start"
+                                    onClick={() => setPaymentType('upi')}
+                                  >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
+                                      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                      <path d="M7.5 12H16.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                      <path d="M12 7.5V16.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                    UPI
+                                  </Button>
+                                </div>
+                              </div>
+                              
+                              <div>
+                                <h3 className="text-sm font-medium mb-2">Upload Payment Receipt</h3>
+                                <div 
+                                  className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-muted/50 transition-colors"
+                                  onClick={triggerFileInput}
+                                >
+                                  <input 
+                                    type="file" 
+                                    ref={fileInputRef} 
+                                    className="hidden" 
+                                    accept="image/*,.pdf" 
+                                    onChange={handleFileChange}
+                                  />
+                                  {receiptFile ? (
+                                    <div className="flex flex-col items-center">
+                                      <CheckCircle className="h-8 w-8 text-green-500 mb-2" />
+                                      <p className="text-sm font-medium">{receiptFile.name}</p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {(receiptFile.size / 1024).toFixed(2)} KB
+                                      </p>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        className="mt-2"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setReceiptFile(null);
+                                        }}
+                                      >
+                                        Replace
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <div className="flex flex-col items-center">
+                                      <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                                      <p className="text-sm font-medium">Upload Receipt</p>
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        Drag and drop or click to browse
+                                      </p>
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        Supported formats: JPG, PNG, PDF
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <DialogFooter>
+                              <Button variant="outline" onClick={() => setSelectedFeeId(null)}>Cancel</Button>
+                              <Button onClick={handleSubmitPayment}>Submit Payment</Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
                       </div>
                     </div>
                   </Card>
@@ -250,7 +479,11 @@ const Fees = () => {
                         </Button>
                       )}
                       {(fee.status === 'pending' || fee.status === 'overdue') && (
-                        <Button size="sm" onClick={handlePayment}>
+                        <Button size="sm" 
+                          onClick={() => {
+                            handlePaymentStart(fee.id);
+                          }}
+                        >
                           <CreditCard className="mr-2 h-4 w-4" />
                           Pay Now
                         </Button>
@@ -325,7 +558,11 @@ const Fees = () => {
                     </div>
                   </div>
                   
-                  <Button className="w-full" onClick={handlePayment}>
+                  <Button className="w-full" 
+                    onClick={() => {
+                      handleSubmitPayment();
+                    }}
+                  >
                     Pay ₹{totalPending.toLocaleString('en-IN')}
                   </Button>
                 </div>
