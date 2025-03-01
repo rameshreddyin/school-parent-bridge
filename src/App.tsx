@@ -11,6 +11,9 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LeaveApplication from "./pages/LeaveApplication";
 import Attendance from "./pages/Attendance";
+import Academics from "./pages/Academics";
+import Calendar from "./pages/Calendar";
+import Homework from "./pages/Homework";
 
 // Initialize Capacitor
 const configureCapacitor = () => {
@@ -34,10 +37,10 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/academics" element={<NotFound />} />
+            <Route path="/academics" element={<Academics />} />
             <Route path="/attendance" element={<Attendance />} />
-            <Route path="/homework" element={<NotFound />} />
-            <Route path="/calendar" element={<NotFound />} />
+            <Route path="/homework" element={<Homework />} />
+            <Route path="/calendar" element={<Calendar />} />
             <Route path="/announcements" element={<NotFound />} />
             <Route path="/messages" element={<NotFound />} />
             <Route path="/fees" element={<NotFound />} />
