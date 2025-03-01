@@ -1,8 +1,7 @@
-
 import { useState, useRef, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { attendanceData, studentData } from '../utils/mockData';
-import { Calendar, Check, Clock, X, CalendarCheck, ChevronDown, ChevronRight, Filter, User } from 'lucide-react';
+import { Calendar, Check, Clock, X, CalendarCheck, ChevronDown, ChevronRight, Filter, User, RefreshCw } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -55,14 +54,13 @@ const Attendance = () => {
         // In a real app, these might be future dates or holidays
         return {
           date: day.toISOString().split('T')[0],
-          status: isSameMonth(day, new Date()) && day > new Date() 
-            ? 'present' // Future dates in current month (placeholder)
-            : 'absent' // Past dates with no record (assumed absent)
+          status: (isSameMonth(day, new Date()) && day > new Date() 
+            ? 'present' : 'absent') as Status // Cast to Status type to fix type error
         };
       }
     });
     
-    setMonthlyAttendance(monthAttendance);
+    setMonthlyAttendance(monthAttendance as Array<{date: string, status: Status}>);
     
     // Calculate statistics
     const present = monthAttendance.filter(a => a.status === 'present').length;
